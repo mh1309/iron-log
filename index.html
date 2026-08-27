@@ -9,8 +9,8 @@
 <meta name="theme-color" content="#b8391f">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="アイアンログ">
-<title>アイアンログ</title>
+<meta name="apple-mobile-web-app-title" content="トレログ">
+<title>トレログ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
@@ -825,7 +825,7 @@
 <div class="app">
   <header class="topbar">
     <div>
-      <div class="brand-mark">IRON<span class="dot">・</span>LOG</div>
+      <div class="brand-mark">TORE<span class="dot">・</span>LOG</div>
       <div class="brand-sub">重量 × 回数トラッカー</div>
     </div>
     <div class="stopwatch-widget">
@@ -1678,7 +1678,7 @@
       html += '<div class="modal-actions"><button class="btn-secondary" data-action="modal-cancel">キャンセル</button><button class="btn-danger" data-action="modal-confirm-import">復元する</button></div>';
     } else if (m.type === "importError") {
       html += '<div class="modal-title">読み込めませんでした</div>';
-      html += '<div class="modal-text">ファイルの形式が正しくないようです。アイアンログからエクスポートしたJSONファイルを選択してください。</div>';
+      html += '<div class="modal-text">ファイルの形式が正しくないようです。トレログからエクスポートしたJSONファイルを選択してください。</div>';
       html += '<div class="modal-actions"><button class="btn-primary" data-action="modal-cancel" style="flex:1;">OK</button></div>';
     }
 
@@ -1718,7 +1718,7 @@
   }
 
   function downloadBackup() {
-    var filename = "iron-log-backup-" + todayStr() + ".json";
+    var filename = "torelog-backup-" + todayStr() + ".json";
     var text = JSON.stringify(state, null, 2);
     if (window.claude && window.claude.use) {
       window.claude.use("downloads").then(function (downloads) {
