@@ -30,6 +30,8 @@
     --accent-ink: #fff8f3;
     --accent-wash: rgba(184, 57, 31, 0.1);
     --accent-wash-2: rgba(184, 57, 31, 0.32);
+    --cal-trained-1: rgba(184, 57, 31, 0.24);
+    --cal-trained-2: rgba(184, 57, 31, 0.48);
     --accent2: #3d6d82;
     --accent2-ink: #f2f8fa;
     --border: #d7d3c5;
@@ -55,6 +57,8 @@
       --accent-ink: #201d18;
       --accent-wash: rgba(226, 114, 74, 0.16);
       --accent-wash-2: rgba(226, 114, 74, 0.38);
+      --cal-trained-1: rgba(226, 114, 74, 0.32);
+      --cal-trained-2: rgba(226, 114, 74, 0.58);
       --accent2: #74a8bd;
       --accent2-ink: #14212a;
       --border: #423c33;
@@ -664,9 +668,9 @@
     width: 100%;
   }
   .calendar-day.is-empty { background: transparent; }
-  .calendar-day.has-1 { background: var(--accent-wash); color: var(--text); }
-  .calendar-day.has-2 { background: var(--accent-wash-2); color: var(--text); }
-  .calendar-day.has-3 { background: var(--accent); color: var(--accent-ink); }
+  .calendar-day.has-1 { background: var(--cal-trained-1); color: var(--text); font-weight: 600; }
+  .calendar-day.has-2 { background: var(--cal-trained-2); color: var(--text); font-weight: 600; }
+  .calendar-day.has-3 { background: var(--accent); color: var(--accent-ink); font-weight: 700; }
   .calendar-day.is-today { font-weight: 700; }
   .calendar-day.is-selected {
     background: var(--accent2);
