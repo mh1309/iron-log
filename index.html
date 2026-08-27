@@ -668,7 +668,12 @@
   .calendar-day.has-2 { background: var(--accent-wash-2); color: var(--text); }
   .calendar-day.has-3 { background: var(--accent); color: var(--accent-ink); }
   .calendar-day.is-today { font-weight: 700; }
-  .calendar-day.is-selected { box-shadow: inset 0 0 0 2px var(--accent2); }
+  .calendar-day.is-selected {
+    background: var(--accent2);
+    color: var(--accent2-ink);
+    font-weight: 700;
+    box-shadow: inset 0 0 0 2px var(--accent2);
+  }
   .streak-line { text-align: center; font-size: 0.82rem; color: var(--text-secondary); }
   .streak-line b { color: var(--accent); font-family: var(--font-mono); }
   .calendar-caption { text-align: center; font-size: 0.82rem; color: var(--text-secondary); padding-top: 4px; border-top: 1px solid var(--border); }
