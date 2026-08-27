@@ -491,12 +491,7 @@
   }
 
   /* ---------- history list ---------- */
-  .day-group {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    overflow: hidden;
-  }
+  .day-group { display: flex; flex-direction: column; gap: 8px; }
   .day-group + .day-group { margin-top: 8px; }
   .day-summary {
     display: flex;
@@ -505,17 +500,27 @@
     padding: 13px 14px;
     font-weight: 600;
     font-size: 0.9rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
   }
   .day-summary .meta { font-weight: 400; color: var(--text-tertiary); font-size: 0.78rem; }
-  .day-body { padding: 0 14px 14px; display: flex; flex-direction: column; gap: 12px; }
-  .part-group { display: flex; flex-direction: column; }
+  .day-body { padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  .part-group {
+    display: flex;
+    flex-direction: column;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
   .part-summary {
     list-style: none;
     display: flex;
     align-items: center;
     gap: 8px;
     cursor: pointer;
-    padding: 13px 0;
+    padding: 13px 14px;
     min-height: 24px;
   }
   .part-summary::-webkit-details-marker { display: none; }
@@ -533,7 +538,8 @@
     transition: transform 0.15s ease;
   }
   .part-group[open] > .part-summary .chev { transform: rotate(90deg); }
-  .part-body { display: flex; flex-direction: column; gap: 12px; padding-top: 8px; }
+  .part-body { display: flex; flex-direction: column; gap: 12px; padding: 0 14px 14px; }
+  .part-group-plain .part-body { padding-top: 14px; }
   .day-exercise-block { display: flex; flex-direction: column; gap: 6px; }
   .day-exercise-name { font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); }
   .day-chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -1487,6 +1493,7 @@
       html += '<div class="day-body">';
       partKeys.forEach(function (partKey) {
         if (partKey) html += '<details class="part-group" open><summary class="part-summary"><span class="part-label">' + escapeHtml(partKey) + '</span><span class="chev">›</span></summary><div class="part-body">';
+        else html += '<div class="part-group part-group-plain"><div class="part-body">';
         byPart[partKey].forEach(function (exId) {
           var ex = exerciseById(exId);
           var sets = byExercise[exId].slice().sort(function (a, b) { return a.ts - b.ts; });
@@ -1498,7 +1505,7 @@
           });
           html += '</div></div>';
         });
-        if (partKey) html += '</div></details>';
+        html += partKey ? '</div></details>' : '</div></div>';
       });
       html += '</div></div>';
     });
