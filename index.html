@@ -1164,6 +1164,7 @@
     logFilterPart: null,
     calendarMonth: todayStr().slice(0, 7),
     calendarTapDate: todayStr(),
+    calendarFilterActive: false,
     toast: null
   };
 
@@ -1430,7 +1431,16 @@
     });
     var dates = Object.keys(byDate).sort().reverse();
 
-    var html = calendarHtml + '<section>';
+    var html = calendarHtml;
+    if (ui.calendarFilterActive) {
+      html += '<button class="btn-text" data-action="calendar-show-all" style="align-self:flex-start;">‹ すべての記録を表示</button>';
+      dates = dates.filter(function (d) { return d === ui.calendarTapDate; });
+      if (!dates.length) {
+        return html + '<div class="empty-state">' + formatDateLabel(ui.calendarTapDate) + 'の記録はありません。</div>';
+      }
+    }
+
+    html += '<section>';
     dates.forEach(function (date, di) {
       var setsForDate = byDate[date];
       var byExercise = {};
@@ -1438,7 +1448,7 @@
         (byExercise[s.exerciseId] = byExercise[s.exerciseId] || []).push(s);
       });
       var exIds = Object.keys(byExercise);
-      var openAttr = di < 2 ? " open" : "";
+      var openAttr = (ui.calendarFilterActive || di < 2) ? " open" : "";
 
       html += '<details class="day-group"' + openAttr + '>';
       html += '<summary class="day-summary"><span>' + formatDateLabel(date) + '</span><span class="meta">' + exIds.length + '種目・' + setsForDate.length + 'セット <span class="chev">›</span></span></summary>';
@@ -1918,6 +1928,10 @@
       render();
     } else if (action === "calendar-day-tap") {
       ui.calendarTapDate = target.getAttribute("data-date");
+      ui.calendarFilterActive = true;
+      render();
+    } else if (action === "calendar-show-all") {
+      ui.calendarFilterActive = false;
       render();
     } else if (action === "export-download") {
       downloadBackup();
