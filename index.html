@@ -635,6 +635,8 @@
     font-size: 0.75rem;
     color: var(--text-secondary);
     background: var(--surface-2);
+    padding: 0;
+    width: 100%;
   }
   .calendar-day.is-empty { background: transparent; }
   .calendar-day.has-1 { background: var(--accent-wash); color: var(--text); }
@@ -643,6 +645,7 @@
   .calendar-day.is-today { box-shadow: inset 0 0 0 2px var(--accent2); }
   .streak-line { text-align: center; font-size: 0.82rem; color: var(--text-secondary); }
   .streak-line b { color: var(--accent); font-family: var(--font-mono); }
+  .calendar-caption { text-align: center; font-size: 0.82rem; color: var(--text-secondary); padding-top: 4px; border-top: 1px solid var(--border); }
 
   /* ---------- settings & data management ---------- */
   .settings-card {
@@ -1112,7 +1115,7 @@
     var exercises = DEFAULT_EXERCISES.map(function (d) {
       return { id: uid("ex"), name: d.name, part: d.part, addedAt: Date.now() };
     });
-    return { exercises: exercises, sets: [], stopwatch: defaultStopwatch(), settings: defaultSettings() };
+    return { exercises: exercises, sets: [], stopwatch: defaultStopwatch(), settings: defaultSettings(), parts: PARTS.slice() };
   }
 
   function migrateState(parsed) {
@@ -1121,6 +1124,7 @@
     if (typeof parsed.settings.unit !== "string") parsed.settings.unit = "kg";
     if (typeof parsed.settings.weightStep !== "number") parsed.settings.weightStep = 2.5;
     if (typeof parsed.settings.soundEnabled !== "boolean") parsed.settings.soundEnabled = false;
+    if (!Array.isArray(parsed.parts)) parsed.parts = PARTS.slice();
     parsed.exercises.forEach(function (ex) { if (typeof ex.part !== "string") ex.part = ""; });
     return parsed;
   }
@@ -1157,6 +1161,7 @@
     restTimer: { duration: 90, remaining: 90, running: false, completed: false, endAt: null },
     logFilterPart: null,
     calendarMonth: todayStr().slice(0, 7),
+    calendarTapDate: todayStr(),
     toast: null
   };
 
@@ -1285,7 +1290,7 @@
         todays.forEach(function (s, i) {
           html += '<div class="set-row">';
           html += '<span class="set-row-idx">' + (i + 1) + '</span>';
-          html += '<span class="set-row-figure">' + dispW(s.weight) + '<span class="x">×</span>' + s.reps + '<span class="x">回</span></span>';
+          html += '<span class="set-row-figure">' + dispW(s.weight) + unitLabel() + '<span class="x">×</span>' + s.reps + '<span class="x">回</span></span>';
           html += '<span class="set-row-e1rm">e1RM ' + dispW(e1rm(s.weight, s.reps)) + '</span>';
           html += '<button class="set-row-del" data-action="delete-set" data-id="' + s.id + '">×</button>';
           html += '</div>';
@@ -1356,10 +1361,21 @@
     return streak;
   }
 
+  function partsForDate(dateStr) {
+    var ids = {};
+    state.sets.forEach(function (s) { if (s.date === dateStr) ids[s.exerciseId] = true; });
+    var result = [];
+    Object.keys(ids).forEach(function (exId) {
+      var ex = exerciseById(exId);
+      if (ex && ex.part && result.indexOf(ex.part) === -1) result.push(ex.part);
+    });
+    return result;
+  }
+
   function renderCalendarCard() {
     var ym = ui.calendarMonth;
-    var parts = ym.split("-").map(Number);
-    var year = parts[0], month = parts[1];
+    var ymParts = ym.split("-").map(Number);
+    var year = ymParts[0], month = ymParts[1];
     var firstDow = new Date(year, month - 1, 1).getDay();
     var daysInMonth = new Date(year, month, 0).getDate();
     var today = todayStr();
@@ -1382,11 +1398,21 @@
       var cls = "calendar-day";
       if (count >= 3) cls += " has-3"; else if (count === 2) cls += " has-2"; else if (count === 1) cls += " has-1";
       if (dateStr === today) cls += " is-today";
-      html += '<div class="' + cls + '">' + day + '</div>';
+      html += '<button class="' + cls + '" data-action="calendar-day-tap" data-date="' + dateStr + '">' + day + '</button>';
     }
     html += '</div>';
     var streak = computeStreak();
     html += '<div class="streak-line">' + (streak > 0 ? '現在 <b>' + streak + '日</b> 連続トレーニング中' : 'まだ連続記録はありません') + '</div>';
+    var capDate = ui.calendarTapDate;
+    var capCount = countByDate[capDate] || 0;
+    html += '<div class="calendar-caption">' + formatDateLabel(capDate) + '：';
+    if (capCount > 0) {
+      var trainedParts = partsForDate(capDate);
+      html += trainedParts.length ? escapeHtml(trainedParts.join("・")) : "（部位未設定の種目）";
+    } else {
+      html += "記録なし";
+    }
+    html += '</div>';
     html += '</div>';
     return html;
   }
@@ -1422,7 +1448,7 @@
         html += '<div class="day-exercise-name">' + escapeHtml(ex ? ex.name : "削除済みの種目") + '</div>';
         html += '<div class="day-chip-row">';
         sets.forEach(function (s) {
-          html += '<span class="day-set-chip">' + dispW(s.weight) + '×' + s.reps + '<button data-action="delete-set" data-id="' + s.id + '">×</button></span>';
+          html += '<span class="day-set-chip">' + dispW(s.weight) + unitLabel() + '×' + s.reps + '回<button data-action="delete-set" data-id="' + s.id + '">×</button></span>';
         });
         html += '</div></div>';
       });
@@ -1446,6 +1472,15 @@
     weightStepOptions().forEach(function (step) {
       html += '<button class="chip' + (state.settings.weightStep === step ? " is-selected" : "") + '" data-action="set-weight-step" data-step="' + step + '">' + fmtWeight(step) + unitLabel() + '</button>';
     });
+    html += '</div></div>';
+    html += '<div class="settings-row"><span class="settings-row-label">部位</span><div class="chip-row" style="padding:0;flex-wrap:wrap;">';
+    state.parts.forEach(function (p) {
+      html += '<span class="day-set-chip">' + escapeHtml(p) + '<button data-action="delete-part-request" data-part="' + escapeHtml(p) + '">×</button></span>';
+    });
+    html += '</div>';
+    html += '<div style="display:flex;gap:8px;">';
+    html += '<input class="modal-input" id="new-part-input" type="text" placeholder="新しい部位名" style="flex:1;padding:9px 12px;font-size:0.85rem;">';
+    html += '<button class="btn-secondary" data-action="add-part">追加</button>';
     html += '</div></div>';
     html += '</div>';
     return html;
@@ -1579,7 +1614,7 @@
         var isPR = maxWeight > 0 && s.weight === maxWeight;
         html += '<div class="set-row">';
         html += '<span class="set-row-idx" style="width:auto;font-size:0.7rem;">' + formatDateShort(s.date) + '</span>';
-        html += '<span class="set-row-figure">' + dispW(s.weight) + '<span class="x">×</span>' + s.reps + '<span class="x">回</span>' + (isPR ? '<span class="pr-badge">PR</span>' : '') + '</span>';
+        html += '<span class="set-row-figure">' + dispW(s.weight) + unitLabel() + '<span class="x">×</span>' + s.reps + '<span class="x">回</span>' + (isPR ? '<span class="pr-badge">PR</span>' : '') + '</span>';
         html += '<span class="set-row-e1rm">e1RM ' + dispW(e1rm(s.weight, s.reps)) + '</span>';
         html += '<button class="set-row-del" data-action="delete-set" data-id="' + s.id + '">×</button>';
         html += '</div>';
@@ -1607,7 +1642,7 @@
       html += '<div class="modal-title">種目を追加</div>';
       html += '<input class="modal-input" id="modal-input" type="text" placeholder="例：インクラインベンチプレス" autofocus>';
       html += '<div class="part-picker">';
-      PARTS.forEach(function (p) {
+      state.parts.forEach(function (p) {
         html += '<button class="chip' + (ui.modalPart === p ? " is-selected" : "") + '" data-action="modal-pick-part" data-part="' + p + '">' + p + '</button>';
       });
       html += '</div>';
@@ -1617,7 +1652,7 @@
       html += '<div class="modal-title">名前を変更</div>';
       html += '<input class="modal-input" id="modal-input" type="text" value="' + escapeHtml(ex ? ex.name : "") + '" autofocus>';
       html += '<div class="part-picker">';
-      PARTS.forEach(function (p) {
+      state.parts.forEach(function (p) {
         html += '<button class="chip' + (ui.modalPart === p ? " is-selected" : "") + '" data-action="modal-pick-part" data-part="' + p + '">' + p + '</button>';
       });
       html += '</div>';
@@ -1631,6 +1666,11 @@
     } else if (m.type === "confirmDeleteSet") {
       html += '<div class="modal-title">このセットを削除しますか？</div>';
       html += '<div class="modal-actions"><button class="btn-secondary" data-action="modal-cancel">キャンセル</button><button class="btn-danger" data-action="modal-confirm-delete-set" data-id="' + m.id + '">削除する</button></div>';
+    } else if (m.type === "confirmDeletePart") {
+      var affected = state.exercises.filter(function (e) { return e.part === m.part; }).length;
+      html += '<div class="modal-title">「' + escapeHtml(m.part) + '」を削除しますか？</div>';
+      html += '<div class="modal-text">' + (affected > 0 ? 'この部位が設定されている種目' + affected + '件は、部位未設定に戻ります。' : '') + '</div>';
+      html += '<div class="modal-actions"><button class="btn-secondary" data-action="modal-cancel">キャンセル</button><button class="btn-danger" data-action="modal-confirm-delete-part" data-part="' + escapeHtml(m.part) + '">削除する</button></div>';
     } else if (m.type === "confirmImport") {
       html += '<div class="modal-title">データを復元しますか？</div>';
       html += '<div class="modal-text">選択したファイルには種目' + m.data.exercises.length + '件、セット記録' + m.data.sets.length + '件が含まれています。復元すると、現在保存されているすべてのデータが上書きされます。この操作は取り消せません。</div>';
@@ -1848,11 +1888,34 @@
       state.settings.weightStep = parseFloat(target.getAttribute("data-step"));
       saveState();
       render();
+    } else if (action === "add-part") {
+      var newPartInput = document.getElementById("new-part-input");
+      var newPartName = newPartInput ? newPartInput.value.trim() : "";
+      if (!newPartName) return;
+      if (state.parts.indexOf(newPartName) === -1) {
+        state.parts.push(newPartName);
+        saveState();
+      }
+      render();
+    } else if (action === "delete-part-request") {
+      ui.modal = { type: "confirmDeletePart", part: target.getAttribute("data-part") };
+      renderModal();
+    } else if (action === "modal-confirm-delete-part") {
+      var partToDelete = target.getAttribute("data-part");
+      state.parts = state.parts.filter(function (p) { return p !== partToDelete; });
+      state.exercises.forEach(function (ex) { if (ex.part === partToDelete) ex.part = ""; });
+      if (ui.logFilterPart === partToDelete) ui.logFilterPart = null;
+      saveState();
+      ui.modal = null;
+      render();
     } else if (action === "calendar-prev") {
       ui.calendarMonth = shiftMonth(ui.calendarMonth, -1);
       render();
     } else if (action === "calendar-next") {
       ui.calendarMonth = shiftMonth(ui.calendarMonth, 1);
+      render();
+    } else if (action === "calendar-day-tap") {
+      ui.calendarTapDate = target.getAttribute("data-date");
       render();
     } else if (action === "export-download") {
       downloadBackup();
