@@ -588,7 +588,8 @@
     background: var(--surface-2);
     border-radius: 6px;
     padding: 2px 7px;
-    margin-top: 4px;
+    margin-left: 6px;
+    vertical-align: middle;
   }
   .part-picker { display: flex; flex-wrap: wrap; gap: 6px; }
   .part-picker .chip { padding: 7px 13px; font-size: 0.8rem; }
@@ -1446,7 +1447,7 @@
         var ex = exerciseById(exId);
         var sets = byExercise[exId].slice().sort(function (a, b) { return a.ts - b.ts; });
         html += '<div class="day-exercise-block">';
-        html += '<div class="day-exercise-name">' + escapeHtml(ex ? ex.name : "削除済みの種目") + '</div>';
+        html += '<div class="day-exercise-name">' + escapeHtml(ex ? ex.name : "削除済みの種目") + (ex && ex.part ? '<span class="part-tag">' + escapeHtml(ex.part) + '</span>' : '') + '</div>';
         html += '<div class="day-chip-row">';
         sets.forEach(function (s) {
           html += '<span class="day-set-chip">' + dispW(s.weight) + unitLabel() + '×' + s.reps + '回<button data-action="delete-set" data-id="' + s.id + '">×</button></span>';
