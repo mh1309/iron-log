@@ -490,32 +490,23 @@
     line-height: 1.6;
   }
 
-  /* ---------- history accordion ---------- */
-  details.day-group {
+  /* ---------- history list ---------- */
+  .day-group {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 12px;
     overflow: hidden;
   }
-  details.day-group + details.day-group { margin-top: 8px; }
-  summary.day-summary {
-    list-style: none;
+  .day-group + .day-group { margin-top: 8px; }
+  .day-summary {
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 13px 14px;
-    cursor: pointer;
     font-weight: 600;
     font-size: 0.9rem;
   }
-  summary.day-summary::-webkit-details-marker { display: none; }
-  summary.day-summary .chev {
-    color: var(--text-tertiary);
-    transition: transform 0.15s ease;
-    font-size: 0.8rem;
-  }
-  details[open] summary.day-summary .chev { transform: rotate(90deg); }
-  summary.day-summary .meta { font-weight: 400; color: var(--text-tertiary); font-size: 0.78rem; }
+  .day-summary .meta { font-weight: 400; color: var(--text-tertiary); font-size: 0.78rem; }
   .day-body { padding: 0 14px 14px; display: flex; flex-direction: column; gap: 12px; }
   .part-group { display: flex; flex-direction: column; }
   .part-summary {
@@ -1475,7 +1466,6 @@
         (byExercise[s.exerciseId] = byExercise[s.exerciseId] || []).push(s);
       });
       var exIds = Object.keys(byExercise);
-      var openAttr = (ui.calendarFilterActive || di < 2) ? " open" : "";
 
       var byPart = {};
       exIds.forEach(function (exId) {
@@ -1491,8 +1481,8 @@
         return ia - ib;
       });
 
-      html += '<details class="day-group"' + openAttr + '>';
-      html += '<summary class="day-summary"><span>' + formatDateLabel(date) + '</span><span class="meta">' + exIds.length + '種目・' + setsForDate.length + 'セット <span class="chev">›</span></span></summary>';
+      html += '<div class="day-group">';
+      html += '<div class="day-summary"><span>' + formatDateLabel(date) + '</span><span class="meta">' + exIds.length + '種目・' + setsForDate.length + 'セット</span></div>';
       html += '<div class="day-body">';
       partKeys.forEach(function (partKey) {
         if (partKey) html += '<details class="part-group" open><summary class="part-summary"><span class="part-label">' + escapeHtml(partKey) + '</span><span class="chev">›</span></summary><div class="part-body">';
@@ -1509,7 +1499,7 @@
         });
         if (partKey) html += '</div></details>';
       });
-      html += '</div></details>';
+      html += '</div></div>';
     });
     html += '</section>';
     return html;
