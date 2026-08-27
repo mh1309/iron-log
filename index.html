@@ -517,6 +517,14 @@
   details[open] summary.day-summary .chev { transform: rotate(90deg); }
   summary.day-summary .meta { font-weight: 400; color: var(--text-tertiary); font-size: 0.78rem; }
   .day-body { padding: 0 14px 14px; display: flex; flex-direction: column; gap: 12px; }
+  .day-part-heading {
+    font-family: var(--font-display);
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--accent2);
+  }
   .day-exercise-block { display: flex; flex-direction: column; gap: 6px; }
   .day-exercise-name { font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); }
   .day-chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -644,7 +652,8 @@
   .calendar-day.has-1 { background: var(--accent-wash); color: var(--text); }
   .calendar-day.has-2 { background: var(--accent-wash-2); color: var(--text); }
   .calendar-day.has-3 { background: var(--accent); color: var(--accent-ink); }
-  .calendar-day.is-today { box-shadow: inset 0 0 0 2px var(--accent2); }
+  .calendar-day.is-today { font-weight: 700; }
+  .calendar-day.is-selected { box-shadow: inset 0 0 0 2px var(--accent2); }
   .streak-line { text-align: center; font-size: 0.82rem; color: var(--text-secondary); }
   .streak-line b { color: var(--accent); font-family: var(--font-mono); }
   .calendar-caption { text-align: center; font-size: 0.82rem; color: var(--text-secondary); padding-top: 4px; border-top: 1px solid var(--border); }
@@ -1401,6 +1410,7 @@
       var cls = "calendar-day";
       if (count >= 3) cls += " has-3"; else if (count === 2) cls += " has-2"; else if (count === 1) cls += " has-1";
       if (dateStr === today) cls += " is-today";
+      if (dateStr === ui.calendarTapDate) cls += " is-selected";
       html += '<button class="' + cls + '" data-action="calendar-day-tap" data-date="' + dateStr + '">' + day + '</button>';
     }
     html += '</div>';
@@ -1450,19 +1460,36 @@
       var exIds = Object.keys(byExercise);
       var openAttr = (ui.calendarFilterActive || di < 2) ? " open" : "";
 
+      var byPart = {};
+      exIds.forEach(function (exId) {
+        var ex = exerciseById(exId);
+        var partKey = (ex && ex.part) ? ex.part : "";
+        (byPart[partKey] = byPart[partKey] || []).push(exId);
+      });
+      var partKeys = Object.keys(byPart).sort(function (a, b) {
+        if (!a) return 1;
+        if (!b) return -1;
+        var ia = state.parts.indexOf(a); if (ia === -1) ia = 999;
+        var ib = state.parts.indexOf(b); if (ib === -1) ib = 999;
+        return ia - ib;
+      });
+
       html += '<details class="day-group"' + openAttr + '>';
       html += '<summary class="day-summary"><span>' + formatDateLabel(date) + '</span><span class="meta">' + exIds.length + '種目・' + setsForDate.length + 'セット <span class="chev">›</span></span></summary>';
       html += '<div class="day-body">';
-      exIds.forEach(function (exId) {
-        var ex = exerciseById(exId);
-        var sets = byExercise[exId].slice().sort(function (a, b) { return a.ts - b.ts; });
-        html += '<div class="day-exercise-block">';
-        html += '<div class="day-exercise-name">' + escapeHtml(ex ? ex.name : "削除済みの種目") + (ex && ex.part ? '<span class="part-tag">' + escapeHtml(ex.part) + '</span>' : '') + '</div>';
-        html += '<div class="day-chip-row">';
-        sets.forEach(function (s) {
-          html += '<span class="day-set-chip">' + dispW(s.weight) + unitLabel() + '×' + s.reps + '回<button data-action="delete-set" data-id="' + s.id + '">×</button></span>';
+      partKeys.forEach(function (partKey) {
+        if (partKey) html += '<div class="day-part-heading">' + escapeHtml(partKey) + '</div>';
+        byPart[partKey].forEach(function (exId) {
+          var ex = exerciseById(exId);
+          var sets = byExercise[exId].slice().sort(function (a, b) { return a.ts - b.ts; });
+          html += '<div class="day-exercise-block">';
+          html += '<div class="day-exercise-name">' + escapeHtml(ex ? ex.name : "削除済みの種目") + (!partKey && ex && ex.part ? '<span class="part-tag">' + escapeHtml(ex.part) + '</span>' : '') + '</div>';
+          html += '<div class="day-chip-row">';
+          sets.forEach(function (s) {
+            html += '<span class="day-set-chip">' + dispW(s.weight) + unitLabel() + '×' + s.reps + '回<button data-action="delete-set" data-id="' + s.id + '">×</button></span>';
+          });
+          html += '</div></div>';
         });
-        html += '</div></div>';
       });
       html += '</div></details>';
     });
@@ -1792,7 +1819,6 @@
         ts: Date.now()
       });
       saveState();
-      startRestTimer();
       if (prevMax !== null && newWeightKg > prevMax) showToast("自己ベスト更新！ " + dispW(newWeightKg) + unitLabel());
       render();
     } else if (action === "delete-set") {
