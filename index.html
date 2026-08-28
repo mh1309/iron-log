@@ -651,6 +651,7 @@
     font-weight: 600;
   }
   .calendar-day {
+    position: relative;
     aspect-ratio: 1;
     display: flex;
     align-items: center;
@@ -665,12 +666,25 @@
   }
   .calendar-day.is-empty { background: transparent; }
   .calendar-day.has-sets { background: var(--accent); color: var(--accent-ink); font-weight: 700; }
-  .calendar-day.is-today { font-weight: 700; }
+  .calendar-day.is-today {
+    font-weight: 700;
+    box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--text);
+  }
   .calendar-day.is-selected {
     background: var(--accent2);
     color: var(--accent2-ink);
     font-weight: 700;
-    box-shadow: inset 0 0 0 2px var(--accent2);
+  }
+  .calendar-day.is-selected.has-sets::after {
+    content: "";
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
   }
   .streak-line { text-align: center; font-size: 0.82rem; color: var(--text-secondary); }
   .streak-line b { color: var(--accent); font-family: var(--font-mono); }
