@@ -32,6 +32,8 @@
     --accent-wash-2: rgba(184, 57, 31, 0.32);
     --accent2: #3d6d82;
     --accent2-ink: #f2f8fa;
+    --cal-select: #5c5648;
+    --cal-select-ink: #f7f5ef;
     --border: #d7d3c5;
     --danger: #a52f2f;
     --danger-ink: #fff8f3;
@@ -57,6 +59,8 @@
       --accent-wash-2: rgba(226, 114, 74, 0.38);
       --accent2: #74a8bd;
       --accent2-ink: #14212a;
+      --cal-select: #a89a80;
+      --cal-select-ink: #23201a;
       --border: #423c33;
       --danger: #d9645f;
       --danger-ink: #201d18;
@@ -668,19 +672,19 @@
   .calendar-day.has-sets { background: var(--accent); color: var(--accent-ink); font-weight: 700; }
   .calendar-day.is-today {
     font-weight: 700;
-    box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--text);
+    box-shadow: 0 0 0 1.5px var(--surface), 0 0 0 3px var(--text-secondary);
   }
   .calendar-day .day-num { position: relative; z-index: 1; }
   .calendar-day.is-selected::before {
     content: "";
     position: absolute;
-    inset: 4px;
+    inset: 7px;
     border-radius: 50%;
-    background: var(--accent2);
+    background: var(--cal-select);
     box-shadow: 0 2px 6px rgba(20, 20, 15, 0.22);
     animation: cal-select-pop 0.18s ease;
   }
-  .calendar-day.is-selected .day-num { color: var(--accent2-ink); font-weight: 700; }
+  .calendar-day.is-selected .day-num { color: var(--cal-select-ink); font-weight: 700; }
   @keyframes cal-select-pop {
     from { transform: scale(0.55); opacity: 0; }
     to { transform: scale(1); opacity: 1; }
